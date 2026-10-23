@@ -4,7 +4,11 @@
 #MainMenu{visibility:hidden;}
 footer{visibility:hidden;}
 header[data-testid="stHeader"]{background:transparent!important;}
-.stDeployButton,[data-testid="stToolbar"],[data-testid="stDecoration"],[data-testid="stStatusWidget"]{display:none!important;}
+.stDeployButton,[data-testid="stAppDeployButton"],[data-testid="stToolbarActions"],[data-testid="stMainMenu"],[data-testid="stDecoration"],[data-testid="stStatusWidget"]{display:none!important;}
+/* keep the toolbar itself: it holds the » button that re-opens a collapsed sidebar */
+[data-testid="stExpandSidebarButton"],[data-testid="stSidebarCollapseButton"]{display:flex!important;visibility:visible!important;opacity:1!important;}
+[data-testid="stExpandSidebarButton"]{background:var(--bg-surface)!important;border:1px solid var(--border-dim)!important;border-radius:2px!important;color:var(--accent-cyan)!important;}
+[data-testid="stExpandSidebarButton"]:hover{border-color:var(--accent-cyan)!important;}
 
 /* ── SUPPRESS RERUN DIMMING ── */
 .stApp > div{opacity:1!important;}

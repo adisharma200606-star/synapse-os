@@ -1,97 +1,75 @@
 # SYNAPSE // OS
 
-Content deployment engine for UGC teams. Interns write scripts from a format library, the Team Lead reviews them in one queue, and approved scripts land at the top of every assigned creator's Google Doc in one click.
+**A content deployment engine for UGC teams.** Interns write scripts from a shared format library, the Team Lead reviews everything in one queue, and approved scripts land at the top of each assigned creator's Google Doc in one click.
 
-**Two modes, detected automatically:**
+I built Synapse during my content and operations internship at **Airlearn**. I pitched it to the CGO, and it was approved for deployment.
 
-| Mode | When | What happens |
-|---|---|---|
-| DEMO | no `credentials.json` in the folder | Everything works; deploys are simulated, bifurcation comes from `data/bifurcation_demo.csv` |
-| LIVE | `credentials.json` present | Real writes to Google Docs, real bifurcation from your Google Sheet |
+![Write & Deploy](docs/screenshots/02-write-deploy.png)
+
+> The data in this repo belongs to a fictional language-learning brand, "Loqui". All creators, scripts and links are made up for the demo.
 
 ---
 
-## 1. Run it on your Mac (5 min)
+## The problem
 
-Open Terminal in the unzipped `synapse-os` folder:
+At Airlearn I was part of a content team that shipped **3,000+ scripts for 20+ UGC creators worldwide**, and those videos brought in **3M+ views**. The whole pipeline ran on Google Docs, Google Sheets and WhatsApp:
+
+| The old way | What Synapse does instead |
+|---|---|
+| A daily "bifurcation" sheet assigns formats to creators, and interns cross-reference it by hand | Pick a format and today's assigned creators load automatically |
+| Scripts are rewritten from scratch or copied out of old docs | A format library holds every proven script template, with multiple takes |
+| The Team Lead approves hundreds of scripts a day in WhatsApp | One **Review Queue**: edit inline, then approve or reject one script, one creator, or everything |
+| Every approved script is pasted by hand into each creator's Google Doc | **One-click deploy** writes a dated script to the top of every creator's Doc |
+| Nobody can tell what shipped, when, or who shipped it | The **Daily Log** keeps an audit trail, charts, and hours saved |
+| EOD reports are typed up by hand at the end of the day | The **EOD Report** shows assigned vs. shipped per creator, with a WhatsApp-ready summary |
+| Inspiration reels sit in chats and bookmarks | The **Inspo Board** is one shared place for every reel worth replicating |
+
+---
+
+## Features
+
+- **Two roles.** Interns write and submit. The Team Lead reviews, edits, approves and ships.
+- **Format library.** Every content format (Street Quiz, Streak Day X, Before/After…) has full script templates. The inspiration link and brand hashtags are filled in automatically.
+- **Bifurcation-aware.** The app reads the day's assignment sheet from Google Sheets and knows which creators get which format.
+- **Batch deploy.** One click writes approved scripts into many creators' Google Docs at once, with a progress bar and an audit log.
+- **Review Queue.** Grouped by intern, then by creator. Approve all, or **Approve + Ship** in a single action.
+- **Daily Log and EOD Report.** Shipped-per-day charts, the format mix, a creator performance tracker, and a screenshot-ready end-of-day report.
+- **DEMO and LIVE modes.** Without Google credentials everything runs on local demo data. With them, it writes to real Docs and Sheets.
+
+## Screenshots
+
+| Review Queue | Daily Log |
+|---|---|
+| ![Review Queue](docs/screenshots/03-review-queue.png) | ![Daily Log](docs/screenshots/04-daily-log.png) |
+| **EOD Report** | **Login** |
+| ![EOD Report](docs/screenshots/05-eod-report.png) | ![Login](docs/screenshots/01-login.png) |
+
+## Tech stack
+
+| Layer | Tools |
+|---|---|
+| App and UI | **Python**, **Streamlit**, custom CSS theme |
+| Data | **pandas**, CSV data layer (`store.py`) |
+| Integrations | **Google Docs API** and **Google Sheets API** through a service account (`google-api-python-client`) |
+| Charts | Altair (via Streamlit) |
+
+---
+
+## Try it
+
+Demo mode needs no Google account:
 
 ```bash
-python3 --version          # needs 3.10+. If lower: brew install python@3.12
-python3 -m venv .venv
-source .venv/bin/activate
+git clone https://github.com/adisharma200606-star/synapse-os.git
+cd synapse-os
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-It opens at http://localhost:8501. Logins (edit in `data/users.csv`):
+Log in as **Team Lead** `tl1` / `tl123` or **Intern** `intern1` / `pass1`.
 
-| Role | Username | Password |
-|---|---|---|
-| Team Lead | `tl1` | `tl123` |
-| Intern 1 | `intern1` | `pass1` |
-| Intern 2 | `intern2` | `pass2` |
-
-Next time, just: `cd synapse-os && source .venv/bin/activate && streamlit run app.py`
-
----
-
-## 2. Google setup → LIVE mode (15 min)
-
-Use your **personal Gmail**, not a college/work account (those often block key creation).
-
-### a. Create the bot
-1. Go to https://console.cloud.google.com → create a project called `synapse-os`
-2. **APIs & Services → Library** → enable **Google Docs API** and **Google Sheets API**
-3. **IAM & Admin → Service Accounts → Create service account** → name it `synapse-bot` → Done (no roles needed)
-4. Click the new account → **Keys → Add key → Create new key → JSON**
-5. Rename the downloaded file to `credentials.json` and drop it in the `synapse-os` folder
-
-### b. Create the demo workspace in Google Drive
-1. Make a folder called `Synapse Demo`
-2. Inside it, create one Google Doc per creator (Kiara, Dev, Ines, Tomas, Mei, Rohan) and one Google Sheet called `Bifurcation`
-3. **Share the folder** (not each file) with the bot's email as **Editor** — the email is `client_email` inside `credentials.json`, and `seed_demo.py` prints it too
-4. Paste each doc's link into `data/links.csv` in place of `PASTE_GOOGLE_DOC_LINK_HERE`
-
-### c. Check everything + seed today's bifurcation
-```bash
-python seed_demo.py --sheet "<your Bifurcation sheet URL>"
-```
-You'll get a ✓ / ✕ for the key, every creator doc, and the sheet. It also creates today's tab in the sheet. Restart the app → the sidebar says **LIVE · GOOGLE CONNECTED**.
-
-Run `python seed_demo.py` again on any later day to add that day's tab.
-
----
-
-## 3. Recording the Loom
-
-```bash
-python reset_demo.py     # fresh review queue, inbox, 14 days of history dated to today
-```
-
-A tight 2-minute run of show:
-1. **Login as intern1** → Write & Deploy → pick a format → script + today's creators load on their own → paste a reel link → it drops into the script → **Submit for review**
-2. **Logout → tl1** → Review Queue → edit one line inline → **Approve + Ship all** → progress bar → open a creator doc and show the dated script at the top
-3. Write & Deploy as TL → **Send it** straight to 3 docs
-4. Daily Log (history + hours saved) → EOD Report (assigned vs shipped)
-
-Have one creator doc open in another tab before you start so the "it actually landed" moment is instant.
-
----
-
-## 4. Push to GitHub
-
-```bash
-brew install gh && gh auth login        # one-time, pick GitHub.com → HTTPS → browser
-git init
-git add .
-git commit -m "Synapse OS v3"
-git branch -M main
-git remote add origin https://github.com/adisharma200606-star/synapse-os.git
-git push -u origin main
-```
-`credentials.json` is in `.gitignore` and will never be pushed. Before your first push, run `git status` and make sure it isn't listed.
-
----
+To connect real Google Docs and Sheets (LIVE mode), follow **[docs/SETUP.md](docs/SETUP.md)**.
 
 ## Project map
 
@@ -109,4 +87,10 @@ reset_demo.py       fresh demo data
 config.json         sheet ID, brand hashtags, org name
 ```
 
-**Editing the format library:** `data/formats.json`. Each format has a script type and one or more "takes" (full scripts). `[PASTE LINK]` gets replaced by the inspiration link, `{HASHTAGS}` by `brand_hashtags` in `config.json`.
+---
+
+## About me
+
+I'm **Adi Sharma**, a BBA (Decision Science) student at CHRIST University, Bengaluru. I work across growth, content operations and product, and I build tools like this when a workflow is broken.
+
+[LinkedIn](https://linkedin.com/in/adi-sharma-6a492b272) · adisharma200606@gmail.com · [More projects](https://github.com/adisharma200606-star)
